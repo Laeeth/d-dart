@@ -26,27 +26,6 @@ alias uint32_t = uint;
 alias uint64_t = ulong;
 alias intptr_t = int*;
 
-version(Win32)
-{
-  static if (DART_SHARED_LIB)
-  {
-    alias DART_EXPORT= DART_EXTERN_C; // = __declspec(dllexport)
-  }  else
-  {
-    alias DART_EXPORT=DART_EXTERN_C;
-  }
-} else
-{
-  const bool __STDC_FORMAT_MACROS = true;
-
-/+
-  static if (DART_SHARED_LIB)
-  {
-    //alias extern (C) = DART_EXTERN_C; //  = __attribute__ ((visibility("default")))
-  } else {
-    //alias DART_EXPORT=DART_EXTERN_C;
-  } +/
-}
 /*
  * =======
  * Handles
@@ -65,7 +44,9 @@ version(Win32)
  * isolate in order to function without error. The current isolate is
  * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
  */
-alias Dart_Isolate=_Dart_Isolate* ;
+
+struct _Dart_Isolate;
+alias Dart_Isolate=_Dart_Isolate*;
 
 /**
  * An object reference managed by the Dart VM garbage collector.
@@ -186,15 +167,16 @@ alias Dart_Isolate=_Dart_Isolate* ;
  * document that a persistent handle is expected as a parameter to a call
  * or the return value from a call is a persistent handle.
  */
-alias Dart_Handle= _Dart_Handle*;
+struct _Dart_Handle;
+alias Dart_Handle=_Dart_Handle*;
+
 alias Dart_PersistentHandle=Dart_Handle;
-alias Dart_WeakPersistentHandle= _Dart_WeakPersistentHandle*;
+struct _Dart_WeakPersistentHandle;
+alias Dart_WeakPersistentHandle=_Dart_WeakPersistentHandle*;
 
 
-extern(C) alias Dart_PeerFinalizer=void function(void *peer);
-
-extern(C) alias Dart_WeakPersistentHandleFinalizer = void function(void* isolate_callback_data,Dart_WeakPersistentHandle handle,void* peer);
-extern(C) alias Dart_PeerFinalizer= void function(void* peer);
+extern (C) alias Dart_PeerFinalizer=void function(void *peer);
+extern (C) alias Dart_WeakPersistentHandleFinalizer = void function(void* isolate_callback_data,Dart_WeakPersistentHandle handle,void* peer);
 
 /**
  * Is this an error handle?
@@ -509,9 +491,11 @@ extern (C) Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(Dart_H
  */
 extern (C) bool Dart_IsPrologueWeakPersistentHandle(Dart_WeakPersistentHandle object);
 
-alias Dart_WeakReferenceSetBuilder=  _Dart_WeakReferenceSetBuilder*;
-alias Dart_WeakReferenceSet =  _Dart_WeakReferenceSet*;
-
+struct _Dart_WeakReferenceSetBuilder;
+alias  Dart_WeakReferenceSetBuilder=_Dart_WeakReferenceSetBuilder*;
+struct _Dart_WeakReferenceSet;
+alias Dart_WeakReferenceSet=_Dart_WeakReferenceSet*;
+ 
 /**
  * Constructs a weak references set builder.
  *
@@ -596,12 +580,12 @@ extern (C) Dart_Handle Dart_AppendValueToWeakReferenceSet(Dart_WeakReferenceSet 
 /**
  * A callback invoked at the beginning of a garbage collection.
  */
-extern (C) alias Dart_GcPrologueCallback = void function(); // check this
+extern (C) alias Dart_GcPrologueCallback = void function();
 
 /**
  * A callback invoked at the end of a garbage collection.
  */
-extern (C) alias Dart_GcEpilogueCallback = void function(); // check this
+extern (C) alias Dart_GcEpilogueCallback = void function();
 
 /**
  * Adds garbage collection callbacks (prologue and epilogue).
@@ -621,7 +605,7 @@ extern (C) alias Dart_GcEpilogueCallback = void function(); // check this
  */
 extern (C) Dart_Handle Dart_SetGcCallbacks(Dart_GcPrologueCallback prologue_callback,Dart_GcEpilogueCallback epilogue_callback);
 
-extern(C) alias Dart_GcPrologueWeakHandleCallback = void function(void* isolate_callback_data,Dart_WeakPersistentHandle obj,intptr_t num_native_fields,intptr_t* native_fields);
+extern (C)  alias Dart_GcPrologueWeakHandleCallback = void function(void* isolate_callback_data,Dart_WeakPersistentHandle obj,intptr_t num_native_fields,intptr_t* native_fields);
 
 extern (C) Dart_Handle Dart_VisitPrologueWeakHandles(Dart_GcPrologueWeakHandleCallback callback);
 
@@ -713,7 +697,7 @@ extern (C) alias Dart_IsolateCreateCallback = Dart_Isolate function(const char* 
  * \return The embedder returns NULL if the creation and
  *   initialization was not successful and the isolate if successful.
  */
-extern (C) alias Dart_ServiceIsolateCreateCalback = Dart_Isolate function(void* callback_data,char** error);
+extern (C) alias Dart_ServiceIsolateCreateCallback = Dart_Isolate function(void* callback_data,char** error);
 
 /**
  * An isolate interrupt callback function.
@@ -812,7 +796,7 @@ extern (C) alias Dart_EntropySource = bool function(uint8_t* buffer, intptr_t le
  */
 extern (C) bool Dart_Initialize(Dart_IsolateCreateCallback create,Dart_IsolateInterruptCallback interrupt,Dart_IsolateUnhandledExceptionCallback unhandled_exception,
     Dart_IsolateShutdownCallback shutdown,Dart_FileOpenCallback file_open,Dart_FileReadCallback file_read,Dart_FileWriteCallback file_write,Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source,Dart_ServiceIsolateCreateCalback service_create);
+    Dart_EntropySource entropy_source,Dart_ServiceIsolateCreateCallback service_create);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -1027,7 +1011,7 @@ immutable Dart_Port  ILLEGAL_PORT =0;
  * responsibility of the embedder to call Dart_HandleMessage to
  * process the message.
  */
-extern (C) alias DartMessageNotifyCallback=void function(Dart_Isolate);
+extern (C) alias Dart_MessageNotifyCallback=void function(Dart_Isolate);
 
 /**
  * Allows embedders to provide an alternative wakeup mechanism for the
@@ -1038,7 +1022,7 @@ extern (C) alias DartMessageNotifyCallback=void function(Dart_Isolate);
  * execution begins. If this function is called after isolate
  * execution begins, the embedder is responsible for threading issues.
  */
-extern (C) void Dart_SetMessageNotifyCallback(Dart_MessageNotifyCallback message_notify_callback);
+extern (C) alias Dart_SetMessageNotifyCallback=void function(Dart_MessageNotifyCallback message_notify_callback);
 /* TODO(turnidge): Consider moving this to isolate creation so that it
  * is impossible to mess up. */
 
@@ -2168,7 +2152,8 @@ extern (C) Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
  * native function by index. It also allows the return value of a
  * native function to be set.
  */
-alias Dart_NativeArguments=_Dart_NativeArguments* ;
+struct _Dart_NativeArguments;
+alias Dart_NativeArguments=_Dart_NativeArguments*;
 
 /**
  * Extracts current isolate data from the native arguments structure.
@@ -2192,17 +2177,8 @@ struct _Dart_NativeArgument_Descriptor {
   uint8_t index;
 };
 
-_Dart_NativeArgument_Descriptor Dart_NativeArgument_Descriptor;
 
-struct _as_string {
-  Dart_Handle dart_str;
-  void* peer;
-}
-
-struct _as_native_fields {
-    intptr_t num_fields;
-    intptr_t* values;
-  }
+alias Dart_NativeArgument_Descriptor= _Dart_NativeArgument_Descriptor;
 
 union _Dart_NativeArgument_Value {
   bool as_bool;
@@ -2210,19 +2186,27 @@ union _Dart_NativeArgument_Value {
   uint32_t as_uint32;
   int64_t as_int64;
   uint64_t as_uint64;
+  private struct _as_string {
+  Dart_Handle dart_str;
+  void* peer;
+  }
   _as_string as_string;
   double as_double;
+  private struct _as_native_fields {
+    intptr_t num_fields;
+    intptr_t* values;
+  }
   _as_native_fields as_native_fields;
   Dart_Handle as_instance;
-};
-_Dart_NativeArgument_Value Dart_NativeArgument_Value;
+}
+alias Dart_NativeArgument_Value=_Dart_NativeArgument_Value;
 
 enum {
   kNativeArgNumberPos = 0,
   kNativeArgNumberSize = 8,
   kNativeArgTypePos = kNativeArgNumberPos + kNativeArgNumberSize,
   kNativeArgTypeSize = 8,
-};
+}
 
 template BITMASK(size)
 {
@@ -2389,7 +2373,7 @@ extern (C) alias Dart_NativeEntryResolver= Dart_NativeFunction function(Dart_Han
  *
  * See Dart_SetNativeResolver.
  */
-extern(C) alias Dart_NativeEntrySymbol =  const uint8_t* function(Dart_NativeFunction nf);
+extern (C)  alias Dart_NativeEntrySymbol =  const uint8_t* function(Dart_NativeFunction nf);
 
 
 /*
