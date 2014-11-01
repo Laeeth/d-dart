@@ -45,47 +45,51 @@ enum Dart_CObject_Type {
   Dart_CObject_kNumberOfTypes
 }
 
-struct _as_bigint {
-  bool neg;
-  intptr_t used;
-  _Dart_CObject* digits;
-}
+
 struct _as_array {
-  intptr_t length;
-  _Dart_CObject** values;
+      intptr_t slength;
+      _Dart_CObject** values;
 }
 
-struct _as_typed_data {
-  Dart_TypedData_Type type;
-  intptr_t length;
-  uint8_t* values;
-}
-
-struct _as_external_typed_data {
-  Dart_TypedData_Type type;
-  intptr_t length;
-  uint8_t* data;
-  void* peer;
-  Dart_WeakPersistentHandleFinalizer callback;
-}
-
-struct _Dart_CObject {
+   
+extern (C) struct _Dart_CObject {
   Dart_CObject_Type type;
-  union value {
+  union _value {
     bool as_bool;
     int32_t as_int32;
     int64_t as_int64;
     double as_double;
     char* as_string;
+
+    struct _as_bigint {
+      bool neg;
+      intptr_t used;
+      _Dart_CObject* digits;
+    }
     _as_bigint as_bigint;
+
     Dart_Port as_send_port;
     _as_array as_array;
+    private struct _as_typed_data {
+      Dart_TypedData_Type type;
+      intptr_t slength;
+      uint8_t* values;
+    }
     _as_typed_data as_typed_data;
+
+    private struct _as_external_typed_data {
+      Dart_TypedData_Type type;
+      intptr_t slength;
+      uint8_t* data;
+      void* peer;
+      Dart_WeakPersistentHandleFinalizer callback;
+    }
     _as_external_typed_data as_external_typed_data;
   }
+  _value value;
 }
 
-alias Dart_CObject=_Dart_CObject;
+extern (C) alias Dart_CObject=_Dart_CObject;
 
 /**
  * Posts a message on some port. The message will contain the
